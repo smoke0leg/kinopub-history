@@ -16,6 +16,7 @@ import argparse
 import datetime as _dt
 import getpass
 import os
+import shutil
 import sys
 from pathlib import Path
 from typing import Callable
@@ -44,6 +45,48 @@ def _summary(data, folder: Path) -> str:
 
 
 # --- мастер ------------------------------------------------------------------------------------
+
+class Progress:
+    """Ход работы для человека: одна перезаписываемая строка на этап, итог этапа — строкой с галочкой.
+    Строку перезаписываем через \r и пробелы, а не ANSI: старая консоль Windows ANSI не понимает."""
+
+    LABEL = {"history": "История просмотров", "lists": "«Я смотрю», закладки, профиль", "series": "Сериалы"}
+
+    def __init__(self, say: Callable[[str], None], live: bool):
+        self.say, self.live, self.missing, self.shown = say, live, 0, 0
+
+    def _line(self, text: str) -> None:
+        if not self.live:
+            return
+        width = max(20, shutil.get_terminal_size().columns - 1)  # длиннее ширины — перенос, \r не сотрёт
+        text = ("  " + text)[:width]
+        sys.stdout.write("\r" + text.ljust(max(self.shown, len(text))))
+        sys.stdout.flush()
+        self.shown = len(text)
+
+    def _clear(self) -> None:
+        if self.live and self.shown:
+            sys.stdout.write("\r" + " " * self.shown + "\r")
+            sys.stdout.flush()
+            self.shown = 0
+
+    def __call__(self, event: str, **i) -> None:
+        if event == "page":
+            self._line(f"{self.LABEL.get(i['stage'], i['stage'])}: страница {i['n']}…")
+        elif event == "series":
+            self.missing += bool(i["missing"])
+            self._line(f"Сериалы: {i['i']} из {i['total']} — {i['title'] or ''}")
+        elif event == "warning":
+            self._clear()
+            self.say("  " + i["text"])
+        elif event == "stage_done":
+            self._clear()
+            if i["stage"] == "series":
+                extra = f"{i['pages']}" + (f" (сняты с сайта: {self.missing})" if self.missing else "")
+            else:
+                extra = f"{i['pages']} стр."
+            self.say(f"  ✓ {self.LABEL.get(i['stage'], i['stage'])}: {extra}")
+
 
 def wizard(base: str = DEFAULT_BASE, ask: Callable[[str], str] = input,
            secret: Callable[[str], str] = getpass.getpass, say: Callable[[str], None] = print,
@@ -85,7 +128,8 @@ def wizard(base: str = DEFAULT_BASE, ask: Callable[[str], str] = input,
                 "  2 — полностью, 20–40 минут: плюс отметки «просмотрено» по всем сезонам всех сериалов\n"
                 "Выбор [1]: ").strip()
         say("\nСкачиваю. Сайт чужой — по одной странице раз в 1,5 с, это нормально.")
-        Grabber(client, archive, log=say, all_seasons=a == "2").run()
+        live = say is print and sys.stdout.isatty()
+        Grabber(client, archive, progress=Progress(say, live), all_seasons=a == "2").run()
 
     folder = Path(ask(f"\nКуда сохранить файлы [{default_folder()}]: ").strip() or default_folder()).expanduser()
     data = assemble(archive, source=base)

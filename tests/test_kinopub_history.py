@@ -325,6 +325,11 @@ class BundleAndWizardTest(unittest.TestCase):
         self.assertIn("Вход выполнен", said)
         self.assertNotIn(("GET", "/item/view/16918/s1e1"), s.calls)  # быстро — без прочих сезонов
         self.assertTrue((out / "series.csv").exists())
+        # человеку — итоги этапов, без служебного журнала (словари, коды вкладок, логин)
+        self.assertIn("✓ История просмотров:", said)
+        self.assertIn("✓ Сериалы: 2", said)
+        self.assertNotIn("стр. 1: записей", said)
+        self.assertNotIn("tester-1", said)
 
     def test_wizard_wrong_code_then_ok(self):
         out = self.tmp / "export"

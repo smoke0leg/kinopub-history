@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kinopub-history"
-version = "0.1.0"
+version = "0.1.1"
 description = "Выгрузка своей истории просмотров kinopub: фильмы, серии, «Я смотрю», закладки — в JSON, CSV, Letterboxd, Trakt"
 readme = "README.md"
 license = { text = "MIT" }
