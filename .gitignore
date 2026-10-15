@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.venv/
+# Настоящие страницы аккаунта и сессия — НИКОГДА не коммитить (там email, логин и история)
+archive/
+cookies.txt
+*.cookies

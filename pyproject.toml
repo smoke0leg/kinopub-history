@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kinopub-history"
+version = "0.1.0"
+description = "Выгрузка своей истории просмотров kinopub: фильмы, серии, «Я смотрю», закладки — в JSON, CSV, Letterboxd, Trakt"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+dependencies = []
+keywords = ["kinopub", "watch history", "export", "letterboxd", "trakt", "data portability"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Utilities",
+    "Natural Language :: Russian",
+]
+
+[project.scripts]
+kinopub-history = "kinopub_history.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+kinopub_history = ["py.typed"]

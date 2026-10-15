@@ -1,0 +1,953 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/kinopub-history/kinopub-history/schema/export.schema.json",
+ "title": "kinopub-history export",
+ "type": "object",
+ "properties": {
+  "history": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/HistoryEntry"
+   }
+  },
+  "episodes": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/HistoryEntry"
+   }
+  },
+  "watchlist": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/WatchlistEntry"
+   }
+  },
+  "bookmarks": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/Bookmark"
+   }
+  },
+  "profile": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/Profile"
+    },
+    {
+     "type": "null"
+    }
+   ]
+  },
+  "series": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/Series"
+   }
+  },
+  "schema_version": {
+   "type": "integer"
+  },
+  "source": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ]
+  },
+  "exported_at": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ]
+  }
+ },
+ "required": [
+  "history",
+  "episodes",
+  "watchlist",
+  "bookmarks",
+  "profile",
+  "series",
+  "schema_version",
+  "source",
+  "exported_at"
+ ],
+ "additionalProperties": false,
+ "description": "Выгрузка истории kinopub (kinopub-history, формат json, раздел all).",
+ "$defs": {
+  "Bookmark": {
+   "type": "object",
+   "properties": {
+    "kp_id": {
+     "type": "integer"
+    },
+    "title": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "original_title": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "year": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "director": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "genres": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "imdb_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "imdb_rating": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "kinopoisk_id": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "kinopoisk_rating": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "kinopub_thumbs": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "poster": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "folder_id": {
+     "type": "integer"
+    },
+    "folder": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    }
+   },
+   "required": [
+    "kp_id",
+    "title",
+    "original_title",
+    "year",
+    "director",
+    "genres",
+    "imdb_id",
+    "imdb_rating",
+    "kinopoisk_id",
+    "kinopoisk_rating",
+    "kinopub_thumbs",
+    "poster",
+    "folder_id",
+    "folder"
+   ],
+   "additionalProperties": false
+  },
+  "Episode": {
+   "type": "object",
+   "properties": {
+    "season": {
+     "type": "integer"
+    },
+    "episode": {
+     "type": "integer"
+    },
+    "media_id": {
+     "type": "integer"
+    },
+    "title": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "watched": {
+     "type": "boolean"
+    },
+    "progress": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "current": {
+     "type": "boolean"
+    }
+   },
+   "required": [
+    "season",
+    "episode",
+    "media_id",
+    "title",
+    "watched",
+    "progress",
+    "current"
+   ],
+   "additionalProperties": false
+  },
+  "EpisodeRef": {
+   "type": "object",
+   "properties": {
+    "season": {
+     "type": "integer"
+    },
+    "episode": {
+     "type": "integer"
+    },
+    "title": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "watched_on": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    }
+   },
+   "required": [
+    "season",
+    "episode",
+    "title",
+    "watched_on"
+   ],
+   "additionalProperties": false
+  },
+  "HistoryEntry": {
+   "type": "object",
+   "properties": {
+    "kp_id": {
+     "type": "integer"
+    },
+    "title": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "original_title": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "year": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "director": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "genres": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "imdb_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "imdb_rating": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "kinopoisk_id": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "kinopoisk_rating": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "kinopub_thumbs": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "poster": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "media_id": {
+     "type": "integer"
+    },
+    "watched_on": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "season": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "episode": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "types": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    }
+   },
+   "required": [
+    "kp_id",
+    "title",
+    "original_title",
+    "year",
+    "director",
+    "genres",
+    "imdb_id",
+    "imdb_rating",
+    "kinopoisk_id",
+    "kinopoisk_rating",
+    "kinopub_thumbs",
+    "poster",
+    "media_id",
+    "watched_on",
+    "season",
+    "episode",
+    "types"
+   ],
+   "additionalProperties": false,
+   "description": "Запись истории: тайтл (history) или серия (episodes). media_id — id медиа, не просмотра."
+  },
+  "Profile": {
+   "type": "object",
+   "properties": {
+    "like": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/Title"
+     }
+    },
+    "dislike": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/Title"
+     }
+    },
+    "watch": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/Title"
+     }
+    },
+    "now": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/Title"
+     }
+    }
+   },
+   "required": [
+    "like",
+    "dislike",
+    "watch",
+    "now"
+   ],
+   "additionalProperties": false
+  },
+  "Series": {
+   "type": "object",
+   "properties": {
+    "kp_id": {
+     "type": "integer"
+    },
+    "title": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "original_title": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "imdb_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "kinopoisk_id": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "seasons": {
+     "type": "array",
+     "items": {
+      "type": "integer"
+     }
+    },
+    "seasons_loaded": {
+     "type": "array",
+     "items": {
+      "type": "integer"
+     }
+    },
+    "seasons_complete": {
+     "type": "array",
+     "items": {
+      "type": "integer"
+     }
+    },
+    "episodes_total": {
+     "type": "integer"
+    },
+    "episodes_watched": {
+     "type": "integer"
+    },
+    "last_seen": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/EpisodeRef"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "first_seen_on": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "episodes_in_history": {
+     "type": "integer"
+    },
+    "page_active": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Episode"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "furthest_watched": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/EpisodeRef"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "missing": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "episodes": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/Episode"
+     }
+    }
+   },
+   "required": [
+    "kp_id",
+    "title",
+    "original_title",
+    "imdb_id",
+    "kinopoisk_id",
+    "seasons",
+    "seasons_loaded",
+    "seasons_complete",
+    "episodes_total",
+    "episodes_watched",
+    "last_seen",
+    "first_seen_on",
+    "episodes_in_history",
+    "page_active",
+    "furthest_watched",
+    "missing",
+    "episodes"
+   ],
+   "additionalProperties": false,
+   "description": "Сериал: серии всех скачанных сезонов. «Где остановились» — last_seen (по истории), не page_active."
+  },
+  "Title": {
+   "type": "object",
+   "properties": {
+    "kp_id": {
+     "type": "integer"
+    },
+    "title": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "original_title": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "year": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "director": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "genres": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "imdb_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "imdb_rating": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "kinopoisk_id": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "kinopoisk_rating": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "kinopub_thumbs": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "poster": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    }
+   },
+   "required": [
+    "kp_id",
+    "title",
+    "original_title",
+    "year",
+    "director",
+    "genres",
+    "imdb_id",
+    "imdb_rating",
+    "kinopoisk_id",
+    "kinopoisk_rating",
+    "kinopub_thumbs",
+    "poster"
+   ],
+   "additionalProperties": false
+  },
+  "WatchlistEntry": {
+   "type": "object",
+   "properties": {
+    "kp_id": {
+     "type": "integer"
+    },
+    "title": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "original_title": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "year": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "director": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "genres": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "imdb_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "imdb_rating": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "kinopoisk_id": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "kinopoisk_rating": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "kinopub_thumbs": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "poster": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "unwatched": {
+     "type": "integer"
+    },
+    "kinopub_views": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    }
+   },
+   "required": [
+    "kp_id",
+    "title",
+    "original_title",
+    "year",
+    "director",
+    "genres",
+    "imdb_id",
+    "imdb_rating",
+    "kinopoisk_id",
+    "kinopoisk_rating",
+    "kinopub_thumbs",
+    "poster",
+    "unwatched",
+    "kinopub_views"
+   ],
+   "additionalProperties": false
+  }
+ }
+}
