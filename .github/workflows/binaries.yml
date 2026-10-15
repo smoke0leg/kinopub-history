@@ -34,7 +34,7 @@ jobs:
         run: |
           exe=dist/kinopub-history; [ -f "$exe.exe" ] && exe="$exe.exe"
           "$exe" --version
-          "$exe" formats
+          "$exe" formats > formats.txt && grep -q "Letterboxd" formats.txt   # вывод в файл: кодировка (Windows cp1252)
           "$exe" < /dev/null || [ $? -eq 2 ]   # без терминала — справка и код 2, а не зависание мастера
           mv "$exe" "dist/${{ matrix.asset }}"
       - uses: actions/upload-artifact@v4

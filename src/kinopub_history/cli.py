@@ -145,8 +145,21 @@ def _export(args: argparse.Namespace) -> None:
         _log(f"{args.format} ({what}) → {args.output}")
 
 
+def _utf8_output() -> None:
+    """Windows при перенаправленном выводе (в файл, в другую программу, в CI) пишет в cp1252 — русский
+    текст падает с UnicodeEncodeError. Переключаем stdout/stderr на UTF-8; консоль Windows его принимает."""
+    for stream in (sys.stdout, sys.stderr):
+        enc = (getattr(stream, "encoding", None) or "").lower().replace("-", "")
+        if enc != "utf8" and hasattr(stream, "reconfigure"):
+            try:
+                stream.reconfigure(encoding="utf-8", errors="replace")
+            except (ValueError, OSError):
+                pass
+
+
 def main(argv: "list[str] | None" = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
+    _utf8_output()
     p = argparse.ArgumentParser(prog="kinopub-history", description="Выгрузка своей истории kinopub. "
                                 "Без аргументов — мастер с вопросами.")
     p.add_argument("--version", action="version", version=__version__)
