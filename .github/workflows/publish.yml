@@ -1,0 +1,20 @@
+# Публикация на PyPI при релизе на GitHub — через Trusted Publishing (OIDC), без токенов в секретах.
+# Один раз на pypi.org: Account → Publishing → «Add a new pending publisher»:
+#   project kinopub-history, owner/repo этого репозитория, workflow publish.yml, environment pypi.
+name: publish
+on:
+  release:
+    types: [published]
+jobs:
+  pypi:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install build && python -m unittest discover -s tests && python -m build
+      - uses: pypa/gh-action-pypi-publish@release/v1
