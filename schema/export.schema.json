@@ -1,6 +1,6 @@
 {
  "$schema": "https://json-schema.org/draft/2020-12/schema",
- "$id": "https://github.com/kinopub-history/kinopub-history/schema/export.schema.json",
+ "$id": "https://github.com/smoke0leg/kinopub-history/blob/main/schema/export.schema.json",
  "title": "kinopub-history export",
  "type": "object",
  "properties": {

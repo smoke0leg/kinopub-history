@@ -53,7 +53,7 @@ def main() -> None:
     defs: dict = {}
     root = obj(models.Export, defs)
     schema = {"$schema": "https://json-schema.org/draft/2020-12/schema",
-              "$id": "https://github.com/kinopub-history/kinopub-history/schema/export.schema.json",
+              "$id": "https://github.com/smoke0leg/kinopub-history/blob/main/schema/export.schema.json",
               "title": "kinopub-history export", **root, "$defs": dict(sorted(defs.items()))}
     out = ROOT / "schema" / "export.schema.json"
     out.write_text(json.dumps(schema, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")

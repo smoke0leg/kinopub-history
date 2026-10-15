@@ -16,7 +16,7 @@ API у kinopub закрыт, выгрузку поддержка не делае
 ## Установка
 
 ```bash
-pip install kinopub-history          # или: pip install git+https://<репозиторий>
+pip install kinopub-history          # или: pip install git+https://github.com/smoke0leg/kinopub-history
 ```
 
 Нужен только Python ≥ 3.9, зависимостей нет.

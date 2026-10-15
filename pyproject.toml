@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Выгрузка своей истории просмотров kinopub: фильмы, серии, «Я смотрю», закладки — в JSON, CSV, Letterboxd, Trakt"
 readme = "README.md"
 license = { text = "MIT" }
+authors = [{ name = "smoke0leg" }]
 requires-python = ">=3.9"
 dependencies = []
 keywords = ["kinopub", "watch history", "export", "letterboxd", "trakt", "data portability"]
@@ -18,6 +19,10 @@ classifiers = [
     "Topic :: Utilities",
     "Natural Language :: Russian",
 ]
+
+[project.urls]
+Homepage = "https://github.com/smoke0leg/kinopub-history"
+Issues = "https://github.com/smoke0leg/kinopub-history/issues"
 
 [project.scripts]
 kinopub-history = "kinopub_history.cli:main"
