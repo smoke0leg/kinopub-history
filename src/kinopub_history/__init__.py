@@ -14,7 +14,7 @@ SDK:
 """
 from .archive import Archive, DirArchive
 from .client import Client, CodeRequired, KinopubError, LoginError, NotFound
-from .export import FORMATS, export, exporter
+from .export import FORMATS, export, export_bundle, exporter
 from .grab import Grabber, assemble, serials
 from .models import (Bookmark, Episode, EpisodeRef, Export, HistoryEntry, Profile, Series, Title,
                      WatchlistEntry)
@@ -23,6 +23,6 @@ __version__ = "0.1.0"
 
 __all__ = [
     "Archive", "DirArchive", "Client", "CodeRequired", "KinopubError", "LoginError", "NotFound",
-    "FORMATS", "export", "exporter", "Grabber", "assemble", "serials",
+    "FORMATS", "export", "export_bundle", "exporter", "Grabber", "assemble", "serials",
     "Bookmark", "Episode", "EpisodeRef", "Export", "HistoryEntry", "Profile", "Series", "Title", "WatchlistEntry",
 ]

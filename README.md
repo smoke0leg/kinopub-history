@@ -13,39 +13,70 @@ API у kinopub закрыт, выгрузку поддержка не делае
 > запросы идут по одному раз в 1,5 с. Сайт меняет вёрстку — если разбор сломался, откройте issue
 > (без своих страниц: в них ваш email и история).
 
-## Установка
+## Как пользоваться — без программирования
+
+1. Скачайте программу для своей системы со страницы
+   [последнего релиза](https://github.com/smoke0leg/kinopub-history/releases/latest):
+   - Windows — `kinopub-history-windows-x64.exe`
+   - Mac на Apple M1/M2/M3/M4 — `kinopub-history-macos-arm64`, на Intel — `kinopub-history-macos-x64`
+   - Linux — `kinopub-history-linux-x64`
+2. Запустите её двойным щелчком (откроется окно с вопросами).
+   - **Windows** предупредит «Windows защитила ваш компьютер» — программа без платной подписи.
+     Нажмите «Подробнее» → «Выполнить в любом случае».
+   - **macOS** не даст открыть программу неизвестного разработчика. Щёлкните по файлу правой кнопкой →
+     «Открыть» → «Открыть». Если не помогло — Системные настройки → Конфиденциальность и безопасность →
+     «Всё равно открыть». Или в Терминале: `xattr -d com.apple.quarantine ~/Downloads/kinopub-history-macos-*`
+     и `chmod +x ~/Downloads/kinopub-history-macos-*`.
+   - **Linux**: `chmod +x kinopub-history-linux-x64 && ./kinopub-history-linux-x64`.
+3. Ответьте на вопросы: логин или email kinopub, пароль, **код из письма** «Проверочный код для кинопаба»
+   (сайт присылает его при входе с нового устройства), быстро или полностью.
+4. Через 5–10 минут рядом с программой появится папка `kinopub-export-<дата>`:
+
+| Файл | Что внутри |
+|---|---|
+| `films.csv` | фильмы, докфильмы, концерты: день просмотра, IMDb, Кинопоиск, жанры, режиссёр |
+| `episodes.csv` | просмотренные серии: сериал, сезон, серия, день |
+| `series.csv` | сериалы: где остановились (`last_seen_*`), сколько серий досмотрено |
+| `watchlist.csv` | «Я смотрю»: сколько серий ещё не смотрели |
+| `bookmarks.csv` | закладки по папкам |
+| `likes.csv` | «Понравились» |
+| `letterboxd.csv` | для импорта в [Letterboxd](https://letterboxd.com/import/) |
+| `trakt.json` | для импорта в Trakt (`POST /sync/history`) |
+| `kinopub.json` | всё одним файлом |
+| `README.txt` | что где и сколько записей |
+
+CSV открываются в Excel, Numbers и Google Таблицах. Повторный запуск не спрашивает пароль и код —
+сессия сохраняется. Скачанные страницы тоже сохраняются: файлы можно пересобрать без сайта
+(мастер предложит «только сделать файлы из скачанного»).
+
+**Быстро или полностью?** Быстро (5–10 минут) — вся история, «Я смотрю», закладки и где вы
+остановились в каждом сериале. Полностью (20–40 минут) — плюс отметки «просмотрено» по каждой серии
+всех сезонов. Сайт чужой, программа берёт по одной странице раз в 1,5 с.
+
+## Командная строка
 
 ```bash
-pip install kinopub-history          # или: pip install git+https://github.com/smoke0leg/kinopub-history
+pip install kinopub-history        # Python ≥ 3.9, зависимостей нет
+kinopub-history                    # тот же мастер с вопросами
 ```
 
-Нужен только Python ≥ 3.9, зависимостей нет.
-
-## Быстрый старт
+Без вопросов (для скриптов и cron):
 
 ```bash
-export KINOPUB_LOGIN=you@example.com
-kinopub-history run -f json -o kinopub.json      # скачать и выгрузить всё
+export KINOPUB_LOGIN=you@example.com KINOPUB_PASSWORD=…
+kinopub-history run -o ./export                       # скачать и сложить все файлы в папку
+kinopub-history run --full -o ./export                # то же, с отметками по всем сезонам
+kinopub-history grab                                  # только скачать в архив (~/.config/kinopub-history/archive)
+kinopub-history grab --resume                         # докачать сериалы после обрыва
+kinopub-history export -o ./export                    # все файлы из архива, без сети
+kinopub-history export -f csv -w episodes -o eps.csv  # один формат, один раздел
+kinopub-history export -f jsonl | jq …                # в stdout
+kinopub-history formats                               # все форматы и разделы
 ```
 
-При первом входе с нового места сайт присылает код в письме «Проверочный код для кинопаба» — утилита
-спросит его в терминале (или `--code 123456`). Сессия сохраняется в `~/.config/kinopub-history/cookies.txt`
-(права 0600), повторные запуски пароль и код не спрашивают.
-
-Скачивание и выгрузка разделены: страницы складываются в архив (`~/.config/kinopub-history/archive/`),
-а выгрузку из архива можно делать сколько угодно раз и в любом формате — без сети:
-
-```bash
-kinopub-history grab                                   # скачать (≈ 15–30 мин, если сериалов много)
-kinopub-history export -f csv -w history -o films.csv
-kinopub-history export -f csv -w episodes -o episodes.csv
-kinopub-history export -f letterboxd -w history -o letterboxd.csv
-kinopub-history export -f trakt -o trakt.json
-kinopub-history formats                                # все форматы и разделы
-```
-
-Архив — ваша страховка: если аккаунт удалят, а в разборе найдётся ошибка, новая версия переразберёт
-сохранённые страницы.
+Код из письма CLI спрашивает в терминале (или `--code 123456`). Сессия — в
+`~/.config/kinopub-history/cookies.txt` (права 0600). Другие флаги: `--only history,watchlist`,
+`--pause 2`, `--archive DIR`, `--base https://новый.адрес` (если сайт снова переедет).
 
 ## Что выгружается
 
@@ -58,6 +89,8 @@ kinopub-history formats                                # все форматы �
 | `bookmarks` | закладки по папкам | `/favorites/view?id=…` |
 | `likes`, `dislikes` | «Понравились» / «Не понравились» — единственные явные оценки на kinopub | профиль |
 | `all` | всё (для `json`, `jsonl`, `trakt`) | |
+
+Разделы указываются в `export -f ФОРМАТ -w РАЗДЕЛ`; без `-f` выгружается всё в папку.
 
 ### Что важно знать о данных
 
@@ -88,7 +121,7 @@ kinopub-history formats                                # все форматы �
 ## SDK
 
 ```python
-from kinopub_history import Client, Grabber, DirArchive, assemble, export
+from kinopub_history import Client, Grabber, DirArchive, assemble, export, export_bundle
 
 client = Client(cookies="cookies.txt")                 # pause=1.5, base="https://kino.watch"
 archive = DirArchive("archive/")                       # или Archive() — в памяти
@@ -101,13 +134,16 @@ for s in data.series:
 
 with open("films.csv", "w", newline="") as f:
     export(data, "csv", f, what="history")
+
+export_bundle(data, "export/")                         # все файлы + README.txt, как у мастера
 ```
 
 - **Разбор без сети**: `kinopub_history.parse` — чистые функции HTML → модели (`parse.history`, `parse.series_page`, …).
 - **Свой транспорт**: `Client(fetch=fn)`, где `fn(method, url, data) -> (final_url, html)` — прокси, `requests`,
   cookie из браузера, тесты. На 404 бросайте `NotFound`.
 - **Свой формат**: декоратор `@exporter("name", "описание", ("history",))`, функция `(data, out, what) -> list[str]`.
-- **Частичный проход**: `Grabber(..., sections=("history", "watchlist"), all_seasons=False)`.
+- **Частичный проход**: `Grabber(..., sections=("history", "watchlist"), all_seasons=False)`
+  (`all_seasons=True` — страницы всех сезонов, как `--full`).
 - **Докачка после обрыва**: `grabber.series(serials(assemble(archive)), resume=True)` / `kinopub-history grab --resume`.
 - Пример целиком: [`examples/embed.py`](examples/embed.py).
 
@@ -125,7 +161,11 @@ with open("films.csv", "w", newline="") as f:
 ```bash
 python -m unittest discover -s tests -v
 python scripts/gen_schema.py      # после правки models.py
+pyinstaller --onefile --console --name kinopub-history packaging/entry.py   # программа
 ```
+
+CI собирает программы для Windows, macOS и Linux на каждый push (`binaries.yml`) и прикрепляет их к релизу;
+релиз публикует пакет на PyPI (`publish.yml`, Trusted Publishing).
 
 ## Лицензия
 
@@ -140,5 +180,6 @@ bookmarks, likes, per-series progress) to JSON (with a JSON Schema), JSONL, CSV,
 Trakt `/sync/history` body. kinopub has no public API, so the tool signs in with your credentials (including the
 e-mailed one-time code) and reads the same pages you see in a browser, one request per 1.5 s. Pages are archived
 locally so exports can be regenerated offline. Pure Python ≥ 3.9, no dependencies; usable as a CLI or as an SDK
-(`Client`, `Grabber`, `assemble`, `export`, pluggable transport and exporters). Unofficial, not affiliated with
+(`Client`, `Grabber`, `assemble`, `export`, pluggable transport and exporters), or as a standalone
+executable for Windows/macOS/Linux with a step-by-step wizard that writes CSV/JSON files into a folder. Unofficial, not affiliated with
 kinopub; for your own account only. MIT license.

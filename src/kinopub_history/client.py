@@ -52,13 +52,15 @@ class Client:
 
     cookies — файл LWP-cookie (создаётся с правами 0600); с ним повторный вход не просит ни пароль, ни код.
     pause — секунд между запросами (по умолчанию 1,5: сайт чужой, нагрузку держим человеческой).
+    retries — повторы при сбое сети или 5xx (пауза 5, 10 с); 404 и прочие 4xx не повторяются.
     """
 
     def __init__(self, base: str = DEFAULT_BASE, cookies: "str | Path | None" = None,
-                 pause: float = 1.5, fetch: Optional[Fetch] = None, timeout: float = 30):
+                 pause: float = 1.5, fetch: Optional[Fetch] = None, timeout: float = 30, retries: int = 2):
         self.base = base.rstrip("/")
         self.pause = pause
         self.timeout = timeout
+        self.retries = retries
         self._last = 0.0
         self._cookie_path = Path(os.path.expanduser(str(cookies))) if cookies else None
         self.jar = http.cookiejar.LWPCookieJar(str(self._cookie_path) if self._cookie_path else None)
@@ -74,13 +76,22 @@ class Client:
     def _urllib_fetch(self, method: str, url: str, data: Optional[dict]) -> "tuple[str, str]":
         body = urllib.parse.urlencode(data).encode() if data is not None else None
         req = urllib.request.Request(url, data=body, method=method, headers={"Referer": url} if body else {})
-        try:
-            with self._opener.open(req, timeout=self.timeout) as r:
-                return r.geturl(), r.read().decode("utf-8", "replace")
-        except urllib.error.HTTPError as e:
-            if e.code == 404:
-                raise NotFound(url) from None
-            raise KinopubError(f"HTTP {e.code}: {url}") from None
+        last: Exception = KinopubError(url)
+        for attempt in range(self.retries + 1):
+            if attempt:
+                time.sleep(5 * attempt)  # сбой сети или сайта — подождать и повторить
+            try:
+                with self._opener.open(req, timeout=self.timeout) as r:
+                    return r.geturl(), r.read().decode("utf-8", "replace")
+            except urllib.error.HTTPError as e:
+                if e.code == 404:
+                    raise NotFound(url) from None
+                if e.code < 500:
+                    raise KinopubError(f"HTTP {e.code}: {url}") from None
+                last = e
+            except (urllib.error.URLError, OSError) as e:  # таймаут, обрыв, TLS не договорился
+                last = e
+        raise KinopubError(f"сайт не отвечает ({getattr(last, 'reason', last)}): {url}")
 
     def _polite(self) -> None:
         wait = self.pause - (time.monotonic() - self._last)

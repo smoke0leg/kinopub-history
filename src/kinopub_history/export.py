@@ -12,7 +12,9 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Callable, TextIO
 
 from .models import Export
@@ -122,7 +124,8 @@ def _letterboxd(data: Export, out: TextIO, what: str) -> list[str]:
             continue
         row = [t.original_title or t.title, t.year or "", t.imdb_id or ""]
         w.writerow(row + [getattr(t, "watched_on", None) or ""] if what == "history" else row)
-    return [f"letterboxd: пропущено без IMDb и года — {len(skipped)}: {', '.join(skipped[:10])}"] if skipped else []
+    return ([f"letterboxd.csv: {len(skipped)} без IMDb и года не попали: {', '.join(skipped[:10])}"]
+            if skipped else [])
 
 
 # --- Trakt --------------------------------------------------------------------------------------
@@ -139,7 +142,7 @@ def _trakt(data: Export, out: TextIO, what: str) -> list[str]:
         body["movies"] = [{"watched_at": at(h.watched_on), "title": h.original_title or h.title, "year": h.year,
                            "ids": {"imdb": h.imdb_id}} for h in data.history if h.imdb_id and h.watched_on]
         if miss:
-            notes.append(f"trakt: фильмов без IMDb пропущено {len(miss)}")
+            notes.append(f"trakt.json: {len(miss)} фильмов без IMDb не попали (Trakt находит фильмы по IMDb)")
     if what in ("all", "episodes"):
         show_ids = {s.kp_id: s for s in data.series if s.imdb_id}
         shows: dict[int, dict] = {}
@@ -155,7 +158,49 @@ def _trakt(data: Export, out: TextIO, what: str) -> list[str]:
         body["shows"] = [{**v, "seasons": [{"number": n, "episodes": sorted(eps, key=lambda x: x["number"])}
                                            for n, eps in sorted(v["seasons"].items())]} for v in shows.values()]
         if lost:
-            notes.append(f"trakt: серии сериалов без IMDb (нужен раздел series) пропущены: {len(lost)} сериалов")
+            notes.append(f"trakt.json: не попали серии {len(lost)} сериалов — у них не нашёлся IMDb "
+                         "(сериал сняли с сайта или его страницу не скачивали)")
     json.dump(body, out, ensure_ascii=False, indent=1)
     out.write("\n")
+    return notes
+
+
+# --- Папка со всем сразу ------------------------------------------------------------------------
+
+BUNDLE = (
+    # файл, формат, раздел, что внутри (для README.txt)
+    ("films.csv", "csv", "history", "фильмы, докфильмы, концерты: день просмотра, IMDb, Кинопоиск, жанры"),
+    ("episodes.csv", "csv", "episodes", "просмотренные серии: сериал, сезон, серия, день"),
+    ("series.csv", "csv", "series", "сериалы: где остановились (last_seen_*), сколько серий досмотрено"),
+    ("watchlist.csv", "csv", "watchlist", "«Я смотрю»: сколько серий ещё не смотрели"),
+    ("bookmarks.csv", "csv", "bookmarks", "закладки по папкам"),
+    ("likes.csv", "csv", "likes", "«Понравились» из профиля"),
+    ("letterboxd.csv", "letterboxd", "history", "импорт в Letterboxd: letterboxd.com/import"),
+    ("trakt.json", "trakt", "all", "тело запроса для Trakt: POST /sync/history"),
+    ("kinopub.json", "json", "all", "всё одним файлом (схема — schema/export.schema.json в репозитории)"),
+)
+
+
+def export_bundle(data: Export, folder: "str | os.PathLike[str]") -> list[str]:
+    """Записать все разделы во всех основных форматах в папку + README.txt «что где».
+    Возвращает замечания (что пропущено). Пустые разделы тоже пишутся — с одним заголовком."""
+    out_dir = Path(folder)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    notes: list[str] = []
+    for name, fmt, what, _ in BUNDLE:
+        # BOM — чтобы Excel узнал UTF-8 и не показал кириллицу кракозябрами; Letterboxd и JSON — без BOM
+        with open(out_dir / name, "w", encoding="utf-8-sig" if fmt == "csv" else "utf-8", newline="") as f:
+            notes += export(data, fmt, f, what)
+    counts = {"фильмов": len(data.history), "серий": len(data.episodes), "сериалов": len(data.series),
+              "в «Я смотрю»": len(data.watchlist), "закладок": len(data.bookmarks),
+              "лайков": len(data.profile.like) if data.profile else 0}
+    lines = ["Выгрузка истории kinopub (kinopub-history)", f"Сделана: {data.exported_at or ''}", "",
+             ", ".join(f"{k}: {v}" for k, v in counts.items()), "", "Файлы:"]
+    lines += [f"  {name:15} {about}" for name, _, _, about in BUNDLE]
+    lines += ["", "CSV открываются в Excel, Numbers, Google Таблицах.",
+              "Время просмотра сайт не хранит — только день; пересмотры не помнит (только последний).",
+              "«Где остановились» в сериале — колонки last_seen_* в series.csv."]
+    if notes:
+        lines += ["", "Замечания:"] + [f"  {n}" for n in notes]
+    (out_dir / "README.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
     return notes

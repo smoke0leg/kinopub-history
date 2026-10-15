@@ -288,3 +288,69 @@ class ExportTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BundleAndWizardTest(unittest.TestCase):
+    def setUp(self):
+        import tempfile
+        self.tmp = Path(tempfile.mkdtemp())
+
+    def tearDown(self):
+        import shutil
+        shutil.rmtree(self.tmp)
+
+    def test_bundle(self):
+        from kinopub_history import export_bundle
+        export_bundle(grabbed()[1], self.tmp / "out")
+        names = {f.name for f in (self.tmp / "out").iterdir()}
+        self.assertEqual(names, {"films.csv", "episodes.csv", "series.csv", "watchlist.csv", "bookmarks.csv",
+                                 "likes.csv", "letterboxd.csv", "trakt.json", "kinopub.json", "README.txt"})
+        self.assertTrue((self.tmp / "out/films.csv").read_bytes().startswith(b"\xef\xbb\xbf"))  # BOM для Excel
+        self.assertTrue((self.tmp / "out/letterboxd.csv").read_bytes().startswith(b"Title,"))  # без BOM
+        self.assertIn("фильмов: 2, серий: 4, сериалов: 2", (self.tmp / "out/README.txt").read_text())
+
+    def run_wizard(self, answers, logged_in=False, **site_kw):
+        from kinopub_history.cli import wizard
+        s = site(**site_kw)
+        s.logged_in = logged_in
+        said = []
+        rc = wizard(ask=lambda q: answers.pop(0), secret=lambda q: "secret", say=said.append,
+                    config=self.tmp / "cfg", client=Client(base="https://kino.test", pause=0, fetch=s))
+        return rc, s, "\n".join(said)
+
+    def test_wizard_login_with_code_fast(self):
+        out = self.tmp / "export"
+        rc, s, said = self.run_wizard(["user", "123456", "", str(out)], __need_code__=True)
+        self.assertEqual(rc, 0)
+        self.assertIn("Вход выполнен", said)
+        self.assertNotIn(("GET", "/item/view/16918/s1e1"), s.calls)  # быстро — без прочих сезонов
+        self.assertTrue((out / "series.csv").exists())
+
+    def test_wizard_wrong_code_then_ok(self):
+        out = self.tmp / "export"
+        rc, _, said = self.run_wizard(["user", "000000", "user", "123456", "2", str(out)], __need_code__=True)
+        self.assertEqual(rc, 0)
+        self.assertIn("Попробуйте ещё раз", said)
+
+    def test_wizard_full_and_reuse(self):
+        out1, out2 = self.tmp / "e1", self.tmp / "e2"
+        _, s, _ = self.run_wizard(["2", str(out1)], logged_in=True)
+        self.assertIn(("GET", "/item/view/16918/s1e1"), s.calls)  # полностью — все сезоны
+        rc, s2, said = self.run_wizard(["2", str(out2)], logged_in=True)  # «2» — только файлы из скачанного
+        self.assertEqual((rc, s2.calls), (0, []))
+        self.assertEqual((out1 / "kinopub.json").read_text().count('"kp_id"'),
+                         (out2 / "kinopub.json").read_text().count('"kp_id"'))
+
+    def test_no_args_without_terminal_prints_help(self):
+        import contextlib
+        from kinopub_history.cli import main
+        from unittest import mock
+        with contextlib.redirect_stdout(io.StringIO()) as buf, mock.patch("sys.stdin", io.StringIO()):
+            rc = main([])  # stdin не терминал (StringIO.isatty() — False): мастер не запускается
+        self.assertEqual(rc, 2)
+        self.assertIn("мастер", buf.getvalue())
+
+    def test_network_failure_is_clean_error(self):
+        from kinopub_history import KinopubError
+        with self.assertRaisesRegex(KinopubError, "сайт не отвечает"):
+            Client(base="http://127.0.0.1:9", pause=0, retries=0, timeout=2).get("/")

@@ -1,0 +1,48 @@
+# Отдельные программы (PyInstaller, Python ставить не нужно): Windows, macOS (Apple Silicon и Intel), Linux.
+# На push — сборка и проверка запуска; на релиз — файлы прикрепляются к релизу.
+name: binaries
+on:
+  push:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, asset: kinopub-history-windows-x64.exe }
+          - { os: macos-latest, asset: kinopub-history-macos-arm64 }
+          - { os: macos-15-intel, asset: kinopub-history-macos-x64 }
+          - { os: ubuntu-22.04, asset: kinopub-history-linux-x64 }
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install . pyinstaller
+      - run: pyinstaller --onefile --console --name kinopub-history packaging/entry.py
+      - name: программа запускается
+        run: |
+          exe=dist/kinopub-history; [ -f "$exe.exe" ] && exe="$exe.exe"
+          "$exe" --version
+          "$exe" formats
+          "$exe" < /dev/null || [ $? -eq 2 ]   # без терминала — справка и код 2, а не зависание мастера
+          mv "$exe" "dist/${{ matrix.asset }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: dist/${{ matrix.asset }}
+      - name: прикрепить к релизу
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" "dist/${{ matrix.asset }}" --clobber
