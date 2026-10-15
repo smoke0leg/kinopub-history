@@ -202,6 +202,9 @@ def main(argv: "list[str] | None" = None) -> int:
             except KeyboardInterrupt:
                 print("\nОстановлено.")
                 rc = 130
+            except EOFError:  # ввод закрыт (на Windows перенаправление из NUL выглядит как терминал)
+                print("\nВвод закрыт — мастеру нужны ответы с клавиатуры. Без вопросов: kinopub-history run --help")
+                rc = 2
             except KinopubError as e:
                 print(f"\nОшибка: {e}")
                 rc = 1

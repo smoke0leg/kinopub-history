@@ -354,3 +354,17 @@ class BundleAndWizardTest(unittest.TestCase):
         from kinopub_history import KinopubError
         with self.assertRaisesRegex(KinopubError, "сайт не отвечает"):
             Client(base="http://127.0.0.1:9", pause=0, retries=0, timeout=2).get("/")
+
+
+class WizardEofTest(unittest.TestCase):
+    def test_closed_input_is_clean(self):
+        import contextlib
+        from unittest import mock
+        from kinopub_history import cli
+
+        def eof(*_):
+            raise EOFError
+        with contextlib.redirect_stdout(io.StringIO()) as buf, mock.patch.object(cli, "wizard", eof):
+            rc = cli.main(["wizard"])
+        self.assertEqual(rc, 2)
+        self.assertIn("Ввод закрыт", buf.getvalue())

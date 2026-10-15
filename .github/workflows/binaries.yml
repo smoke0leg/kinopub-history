@@ -35,7 +35,10 @@ jobs:
           exe=dist/kinopub-history; [ -f "$exe.exe" ] && exe="$exe.exe"
           "$exe" --version
           "$exe" formats > formats.txt && grep -q "Letterboxd" formats.txt   # вывод в файл: кодировка (Windows cp1252)
-          "$exe" < /dev/null || [ $? -eq 2 ]   # без терминала — справка и код 2, а не зависание мастера
+          # без ответов с клавиатуры — справка или понятный отказ, но не трейсбек и не зависание;
+          # адрес сайта заведомо мёртвый: CI не должен ходить на kinopub
+          KINOPUB_BASE=http://127.0.0.1:9 "$exe" < /dev/null > noargs.txt 2>&1 || true
+          cat noargs.txt; ! grep -q Traceback noargs.txt
           mv "$exe" "dist/${{ matrix.asset }}"
       - uses: actions/upload-artifact@v4
         with:
